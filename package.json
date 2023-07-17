@@ -1,0 +1,28 @@
+{
+  "name": "@agoston-io/client",
+  "version": "1.0.3",
+  "description": "JS client for Agoston.io backends",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/agoston-io/js-client.git"
+  },
+  "keywords": [
+    "GraphQL",
+    "backend"
+  ],
+  "author": "nicolas@agoston.io",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/agoston-io/js-client/issues"
+  },
+  "homepage": "https://github.com/agoston-io/js-client#readme",
+  "dependencies": {
+    "@apollo/client": "^3.7.17",
+    "graphql-ws": "^5.14.0",
+    "@vue/apollo-option": "^4.0.0-beta.5"
+  }
+}
