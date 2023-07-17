@@ -1,12 +1,14 @@
 class Client {
 
   async init(backendUrl, bearerToken) {
-    if (backendUrl === undefined) {
-      throw new Error('no backend url provided in "backendUrl".');
-    }
     this.backendUrl = backendUrl;
-    if (backendUrl.slice(-1) === '/') {
-      this.backendUrl = backendUrl.slice(0, -1)
+    this.demoMode = false
+    if (this.backendUrl === undefined) {
+      this.backendUrl = 'https://27ec7d04-5b17-46bb-a69f-8ba4a27caef0.2c059b20-a200-45aa-8492-0e2891e14832.backend.agoston.io';
+      this.demoMode = true
+    }
+    if (this.backendUrl.slice(-1) === '/') {
+      this.backendUrl = this.backendUrl.slice(0, -1)
     }
     this.headers = {
       Accept: "application/json",
