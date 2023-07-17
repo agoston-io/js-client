@@ -40,12 +40,14 @@ class Client {
     };
     const response = await fetch(`${this.backendUrl}/data/graphql`, options);
     var s = await response.json();
-    this.session = {}
-    this.session.role = s.data.session.role
-    this.session.userId = s.data.session.user_id
-    this.session.sessionID = s.data.session.session_id
-    this.session.isAuthenticated = s.data.session.is_authenticated
+    this.session = s.data.session
   }
+
+  // Getters
+  isAuthenticated() { return this.session.is_authenticated || false }
+  userId() { return this.session.user_id || 0 }
+  userRole() { return this.session.role || "anonymous" }
+  sessionId() { return this.session.session_id || "" }
 }
 
 async function AgostonClient(backendUrl, bearerToken) {
