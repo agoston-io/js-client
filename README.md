@@ -6,6 +6,8 @@
 - TODO: if no backendUrl provided, go to demo one with demo message WEB
 - TODO: auth for subscription? Working with WEB?
 - TODO: make next scroll liveshooping working
+---
+- TODO: doc here with more examples + explanations + link to docs quick start
 
 ## Implement
 
@@ -25,7 +27,7 @@ import { AgostonClient } from '@agoston-io/client'
 
 ```js
 // promise with async/await
-const agostonClient = await AgostonClient(process.env.AGOSTON_BACKEND_URL, process.env.AGOSTON_BACKEND_URL_BEARER_TOKEN);
+const agostonClient = await AgostonClient(process.env.AGOSTON_BACKEND_URL);
 if (agostonClient.isAuthenticated) {
     console.log(`Welcome user ${agostonClient.userId()} 👋! Your role is: ${agostonClient.userRole()}.`);
 }
@@ -33,7 +35,7 @@ if (agostonClient.isAuthenticated) {
 
 ```js
 // promise with then/catch
-AgostonClient(process.env.AGOSTON_BACKEND_URL, process.env.AGOSTON_BACKEND_URL_BEARER_TOKEN).then(agostonClient => {
+AgostonClient(process.env.AGOSTON_BACKEND_URL).then(agostonClient => {
     if (agostonClient.isAuthenticated()) {
         console.log(`Welcome user ${agostonClient.userId()} 👋! Your role is: ${agostonClient.userRole()}.`);
     }
@@ -41,6 +43,16 @@ AgostonClient(process.env.AGOSTON_BACKEND_URL, process.env.AGOSTON_BACKEND_URL_B
 ```
 
 ## Examples
+
+### Create client with the demo backend
+
+```js
+AgostonClient().then(agostonClient => {
+    if (agostonClient.isAuthenticated()) {
+        console.log(`Welcome user ${agostonClient.userId()} 👋! Your role is: ${agostonClient.userRole()}.`);
+    }
+});
+```
 
 ### Authenticate with user/password
 
