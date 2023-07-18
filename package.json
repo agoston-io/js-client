@@ -22,7 +22,9 @@
   "homepage": "https://github.com/agoston-io/js-client#readme",
   "dependencies": {
     "@apollo/client": "^3.7.17",
+    "@vue/apollo-option": "^4.0.0-beta.5",
     "graphql-ws": "^5.14.0",
-    "@vue/apollo-option": "^4.0.0-beta.5"
+    "node-fetch": "^2.6.12",
+    "ws": "^8.13.0"
   }
 }
