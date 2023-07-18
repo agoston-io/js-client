@@ -48,6 +48,9 @@ class Client {
   // Getters
   isAuthenticated() { return this.session.is_authenticated || false }
   userId() { return this.session.user_id || 0 }
+  userAuthProvider() { return this.session.auth_provider || "" }
+  userAuthSubject() { return this.session.auth_subject || "0" }
+  userAuthData() { return this.session.auth_data || "{}" }
   userRole() { return this.session.role || "anonymous" }
   sessionId() { return this.session.session_id || "" }
 }
