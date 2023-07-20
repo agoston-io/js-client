@@ -7,7 +7,7 @@ class Client {
     this.BROWSER = 'browser';
     this.COMMAND_LINE = 'cmd';
     this.demoMode = true;
-    this.backendUrl = process.env.AGOSTON_DEMO_BACKEND_URL;
+    this.backendUrl = 'https://27ec7d04-5b17-46bb-a69f-8ba4a27caef0.2c059b20-a200-45aa-8492-0e2891e14832.backend.agoston.io';
     this.endpoints = {
       graphql: `${this.backendUrl}/data/graphql`,
       graphql_ws: `${this.backendUrl}/data/graphql`

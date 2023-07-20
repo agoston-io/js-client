@@ -27,18 +27,28 @@ import { AgostonClient } from '@agoston-io/client'
 
 ```js
 // promise with async/await
-const agostonClient = await AgostonClient(process.env.AGOSTON_BACKEND_URL);
+const agostonClient = await AgostonClient({ backendUrl: process.env.AGOSTON_BACKEND_URL });
 if (agostonClient.isAuthenticated) {
     console.log(`Welcome user ${agostonClient.userId()} 👋! Your role is: ${agostonClient.userRole()}.`);
 }
+
+// GraphQL
+const apolloClient = agostonClient.createEmbeddedApolloClient();
+apolloClient.query({ query: gql`query {session} ` }).then((result) => console.log(result));
 ```
 
 ```js
 // promise with then/catch
-AgostonClient(process.env.AGOSTON_BACKEND_URL).then(agostonClient => {
+AgostonClient({ backendUrl: process.env.AGOSTON_BACKEND_URL }).then(agostonClient => {
+
     if (agostonClient.isAuthenticated()) {
         console.log(`Welcome user ${agostonClient.userId()} 👋! Your role is: ${agostonClient.userRole()}.`);
     }
+
+    // GraphQL
+    const apolloClient = agostonClient.createEmbeddedApolloClient();
+    apolloClient.query({ query: gql`query {session} ` }).then((result) => console.log(result));
+
 });
 ```
 
@@ -57,24 +67,65 @@ AgostonClient().then(agostonClient => {
 ### Authenticate with user/password
 
 ```js
-agostonClient.loginOrSignUpWithUserPassword("niolap", "password", options = { redirectSuccess: '/profile' })
-agostonClient.loginOrSignUpWithUserPassword(
-    "niolap", "password",
-    options = { free_value: { dateOfBirth: "1986.01.12" }, redirectSuccess: '/profile', redirectError: '/login' })
+agostonClient.loginOrSignUpWithUserPassword({
+    username: "niolap",
+    password: "password",
+    options: {
+        redirectSuccess: '/'
+    }
+});
+agostonClient.loginOrSignUpWithUserPassword({
+    username: "niolap",
+    password: "password",
+    options: {
+        redirectSuccess: '/',
+        free_value: {
+            dateOfBirth: "1986.01.12"
+            },
+    }
+});
 ```
 
 ### Authenticate with bearer token
 
 ```js
-agostonClient.loginOrSignUpWithUserPassword("niolap", "password")
+AgostonClient({
+  backendUrl: process.env.AGOSTON_BACKEND_URL,
+  bearerToken: process.env.AGOSTON_BACKEND_URL_BEARER_TOKEN
+}).then(agostonClient => {
+  if (agostonClient.isAuthenticated()) {
+    console.log(`Welcome user ${agostonClient.userId()} 👋! Your role is: ${agostonClient.userRole()}.`);
+  }
+});
 ```
 
 ### Authenticate with an external provider
 
 ```js
-agostonClient.loginOrSignUpFromProvider("google-oauth20")
-agostonClient.loginOrSignUpFromProvider("github-oauth20")
-agostonClient.loginOrSignUpFromProvider("facebook-oauth20", options = { redirectSuccess: '/profile' }))
+agostonClient.loginOrSignUpFromProvider({ strategyName: "google-oauth20" });
+agostonClient.loginOrSignUpFromProvider({
+    strategyName: "auth0-oidc",
+    options: {
+        redirectSuccess: '/profile'
+        redirectError: '/login'
+    }
+});
+
+agostonClient.loginOrSignUpFromProvider({ strategyName: "github-oauth20" });
+agostonClient.loginOrSignUpFromProvider({
+    strategyName: "auth0-oidc",
+    options: {
+        redirectSuccess: '/profile'
+    }
+});
+
+agostonClient.loginOrSignUpFromProvider({ strategyName: "facebook-oauth20" });
+agostonClient.loginOrSignUpFromProvider({
+    strategyName: "auth0-oidc",
+    options: {
+        redirectSuccess: '/profile'
+    }
+});
 ```
 
 ### GraphQL Query
@@ -83,8 +134,12 @@ The Agoston package comes with an embedded Apollo client preconfigured with your
 In most cases, it's good enough. You can create your own Apollo client if you need more specific Apollo configuration.
 
 ```js
-const apolloClient = agostonClient.createEmbeddedApolloClient()
-apolloClient.query({ query: gql`query {session}` }).then((result) => console.log(result));
+AgostonClient({ backendUrl: process.env.AGOSTON_BACKEND_URL }).then(agostonClient => {
+
+    const apolloClient = agostonClient.createEmbeddedApolloClient();
+    apolloClient.query({ query: gql`query {session} ` }).then((result) => console.log(result));
+
+});
 ```
 
 ```js

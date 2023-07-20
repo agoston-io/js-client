@@ -12,6 +12,12 @@ var { gql } = require('@apollo/client/core');
     console.log(`Welcome user ${agostonClient.userId()} 👋! Your role is: ${agostonClient.userRole()}.`);
   }
 
+  // Demo backend
+  const agostonClientDemo = await AgostonClient();
+  if (agostonClientDemo.isAuthenticated) {
+    console.log(`Welcome user ${agostonClientDemo.userId()} 👋! Your role is: ${agostonClientDemo.userRole()}.`);
+  }
+
 })();
 
 // promise with then/catch
@@ -24,13 +30,13 @@ AgostonClient({
   }
 
   // Authentication
-  agostonClient.loginOrSignUpFromProvider({ strategyName: "google-oauth20" })
-  agostonClient.loginOrSignUpFromProvider({ strategyName: "auth0-oidc", options: { redirectSuccess: '/' } })
-  agostonClient.loginOrSignUpWithUserPassword({ username: "niolap", password: "password", options: { redirectSuccess: '/' } })
-  agostonClient.loginOrSignUpWithUserPassword({ username: "niolap", password: "password", options: { free_value: { dateOfBirth: "1986.01.12" }, redirectSuccess: '/' } })
-  agostonClient.logout({ options: { redirectLogout: '/logout' } })
+  agostonClient.loginOrSignUpFromProvider({ strategyName: "google-oauth20" });
+  agostonClient.loginOrSignUpFromProvider({ strategyName: "auth0-oidc", options: { redirectSuccess: '/' } });
+  agostonClient.loginOrSignUpWithUserPassword({ username: "niolap", password: "password", options: { redirectSuccess: '/' } });
+  agostonClient.loginOrSignUpWithUserPassword({ username: "niolap", password: "password", options: { free_value: { dateOfBirth: "1986.01.12" }, redirectSuccess: '/' } });
+  agostonClient.logout({ options: { redirectLogout: '/logout' } });
 
   // GraphQL
-  const apolloClient = agostonClient.createEmbeddedApolloClient()
+  const apolloClient = agostonClient.createEmbeddedApolloClient();
   apolloClient.query({ query: gql`query {session} ` }).then((result) => console.log(result));
 });
