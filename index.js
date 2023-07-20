@@ -2,109 +2,119 @@ const fetch = require('node-fetch');
 
 class Client {
 
-  constructor() {
-    this.ENV = process.env.NODE_ENV || 'development' === 'development';
-    this.BROWSER = 'browser';
-    this.COMMAND_LINE = 'cmd';
-    this.demoMode = true;
-    this.backendUrl = 'https://27ec7d04-5b17-46bb-a69f-8ba4a27caef0.2c059b20-a200-45aa-8492-0e2891e14832.backend.agoston.io';
-    this.endpoints = {
-      graphql: `${this.backendUrl}/data/graphql`,
-      graphql_ws: `${this.backendUrl}/data/graphql`
-    };
-    this.headers = {
-      Accept: "application/json",
-      "Content-Type": "application/json;charset=UTF-8",
-    };
-    this.mode = this.CMD;
-    if (typeof Window !== 'undefined') {
-      this.mode = this.BROWSER;
-      this.base_url = window.location.href;
-      this.redirectSuccess = this.base_url;
-      this.redirectError = this.base_url;
-      this.redirectLogout = this.base_url;
-    }
-  }
+  #ENV = process.env.NODE_ENV || 'development' === 'development';
+  #BROWSER = 'browser';
+  #CMD = 'cmd';
+  #mode = this.CMD;
+  #demoMode = true;
+  // TODO: replace  #backendUrl = 'https://27ec7d04-5b17-46bb-a69f-8ba4a27caef0.2c059b20-a200-45aa-8492-0e2891e14832.backend.agoston.io';
+  #backendUrl = 'https://graphile.agoston-dev.io';
+  #endpoints = {
+    graphql: `${this.#backendUrl}/data/graphql`,
+    graphql_ws: `${this.#backendUrl}/data/graphql`
+  };
+  #headers = {
+    Accept: "application/json",
+    "Content-Type": "application/json;charset=UTF-8",
+  };
+  #base_url = this.backendUrl;
+  #redirectSuccess = this.base_url;
+  #redirectError = this.base_url;
+  #redirectLogout = this.base_url;
+  #configuration = {};
+  #session = {};
+  #apolloClient = null;
+  #apolloProvider = null;
 
   async init(params = {}) {
 
+    if (typeof Window !== 'undefined') {
+      this.#mode = this.BROWSER;
+      this.#base_url = window.location.href;
+      this.#redirectSuccess = this.#base_url;
+      this.#redirectError = this.#base_url;
+      this.#redirectLogout = this.#base_url;
+    }
+
     if (params.backendUrl !== undefined) {
-      this.demoMode = false
-      this.backendUrl = params.backendUrl;
-      if (this.backendUrl.slice(-1) === '/') {
-        this.backendUrl = this.backendUrl.slice(0, -1)
+      this.#demoMode = false
+      this.#backendUrl = params.backendUrl;
+      if (this.#backendUrl.slice(-1) === '/') {
+        this.#backendUrl = this.#backendUrl.slice(0, -1)
       }
     } else {
-      console.log(`No backend URL provided, working with the demo backend '${this.backendUrl}'.`)
+      console.log(`No backend URL provided, working with the demo backend '${this.#backendUrl}'.`)
     }
 
     // Load configuration
-    await this.loadConfiguration();
-    this.endpoints = this.configuration.endpoints;
+    await this.#loadConfiguration();
+    this.#endpoints = this.#configuration.endpoints;
 
     // Redirect
-    if (this.mode === this.CMD) {
-      this.base_url = this.backendUrl
-      this.redirectSuccess = this.configuration.authentication.session_link;
-      this.redirectError = this.configuration.authentication.session_link;
-      this.redirectLogout = this.configuration.authentication.session_link;
+    if (this.#mode === this.CMD) {
+      this.#base_url = this.#backendUrl
+      this.#redirectSuccess = this.#configuration.authentication.session_link;
+      this.#redirectError = this.#configuration.authentication.session_link;
+      this.#redirectLogout = this.#configuration.authentication.session_link;
     }
 
     // Load session
-    if (params.bearerToken !== undefined && !this.configuration.authentication.without_link["http-bearer"].enable) {
+    if (params.bearerToken !== undefined && !this.#configuration.authentication.without_link["http-bearer"].enable) {
       throw new Error('Bearer authentication is not enabled on the backend.');
     }
     if (params.bearerToken !== undefined) {
-      this.headers['Authorization'] = 'Bearer ' + params.bearerToken;
+      this.#headers['Authorization'] = 'Bearer ' + params.bearerToken;
     }
-    await this.loadSession();
+    await this.#loadSession();
 
     return this;
   };
 
-  async loadConfiguration() {
+  async #loadConfiguration() {
     const options = {
       method: "GET",
-      headers: this.headers,
+      headers: this.#headers,
     };
-    const response = await fetch(`${this.backendUrl}/.well-known/configuration`, options);
-    this.configuration = await response.json();
+    const response = await fetch(`${this.#backendUrl}/.well-known/configuration`, options);
+    this.#configuration = await response.json();
   }
 
-  async loadSession() {
+  async #loadSession() {
     const options = {
       method: "POST",
       credentials: "include",
-      headers: this.headers,
+      headers: this.#headers,
       body: JSON.stringify({
         query: 'query { session }'
       }),
     };
-    const response = await fetch(`${this.backendUrl}/data/graphql`, options);
+    const response = await fetch(`${this.#backendUrl}/data/graphql`, options);
     var s = await response.json();
-    this.session = s.data.session
+    this.#session = s.data.session
   }
 
   isAuthenticated() {
-    return this.session?.is_authenticated || false
+    return this.#session?.is_authenticated || false
   }
 
   // Getters
-  userId() { return this.session?.user_id || 0 }
-  userAuthProvider() { return this.session?.auth_provider || "" }
-  userAuthSubject() { return this.session?.auth_subject || "0" }
-  userAuthData() { return this.session?.auth_data || "{}" }
-  userRole() { return this.session?.role || "anonymous" }
-  sessionId() { return this.session?.session_id || "" }
+  userId() { return this.#session?.user_id || 0 }
+  userAuthProvider() { return this.#session?.auth_provider || "" }
+  userAuthSubject() { return this.#session?.auth_subject || "0" }
+  userAuthData() { return this.#session?.auth_data || "{}" }
+  userRole() { return this.#session?.role || "anonymous" }
+  sessionId() { return this.#session?.session_id || "" }
+  apolloClient() { return this.#apolloClient }
+  apolloProvider() { return this.#apolloProvider }
 
   // Auth with user/password
   async loginOrSignUpWithUserPassword(params = {}) {
     if (params.username === undefined || params.password === undefined) {
       throw new Error(`Missing username or password.`);
     }
-    var post_option = `?auth_redirect_success=${params.options?.redirectSuccess || this.redirectSuccess}&auth_redirect_error=${params.options?.redirectError || this.redirectError}`;
-    var post_link = `${this.configuration.authentication.without_link["user-pwd"].post_auth_endpoint}${post_option}`;
-    if (this.mode === this.BROWSER) {
+    var post_option = `?auth_redirect_success=${params.options?.redirectSuccess || this.#redirectSuccess}&auth_redirect_error=${params.options?.redirectError || this.#redirectError}`;
+    var post_link = `${this.#configuration.authentication.without_link["user-pwd"].post_auth_endpoint}${post_option}`;
+    if (this.#mode === this.#BROWSER) {
       const response = await fetch(post_link, {
         method: "POST",
         body: JSON.stringify({
@@ -121,12 +131,12 @@ class Client {
 
   // Auth with link
   loginOrSignUpFromProvider(params = {}) {
-    if (!(params.strategyName in this.configuration.authentication.with_link)) {
-      throw new Error(`unknown strategy provided: ${params.strategyName}. Check which strategy is enabled on '${this.backendUrl}/.well-known/configuration'.`);
+    if (!(params.strategyName in this.#configuration.authentication.with_link)) {
+      throw new Error(`unknown strategy provided: ${params.strategyName}. Check which strategy is enabled on '${this.#backendUrl}/.well-known/configuration'.`);
     }
-    var post_option = `?auth_redirect_success=${params.options?.redirectSuccess || this.redirectSuccess}&auth_redirect_error=${params.options?.redirectError || this.redirectError}`;
-    var auth_link = `${this.configuration.authentication.with_link[params.strategyName].auth_link}${post_option}`;
-    if (this.mode === this.BROWSER) {
+    var post_option = `?auth_redirect_success=${params.options?.redirectSuccess || this.#redirectSuccess}&auth_redirect_error=${params.options?.redirectError || this.#redirectError}`;
+    var auth_link = `${this.#configuration.authentication.with_link[params.strategyName].auth_link}${post_option}`;
+    if (this.#mode === this.#BROWSER) {
       window.location.href = auth_link;
     } else {
       console.log(`AUTH LINK: ${auth_link}`);
@@ -135,8 +145,8 @@ class Client {
 
   // Logout
   logout(params = {}) {
-    var auth_link = `${this.configuration.authentication.logout_link}?auth_redirect_logout=${params.options?.redirectLogout || this.redirectLogout}`;
-    if (this.mode === this.BROWSER) {
+    var auth_link = `${this.#configuration.authentication.logout_link}?auth_redirect_logout=${params.options?.redirectLogout || this.#redirectLogout}`;
+    if (this.#mode === this.#BROWSER) {
       window.location.href = auth_link;
     } else {
       console.log(`LOGOUT LINK: ${auth_link}`);
@@ -154,13 +164,13 @@ class Client {
     const { getMainDefinition } = require('@apollo/client/utilities');
 
     const httpLink = new HttpLink({
-      uri: this.endpoints.graphql,
+      uri: this.#endpoints.graphql,
       credentials: 'include'
     })
     const wsLink = new GraphQLWsLink(
       createClient({
         webSocketImpl: WebSocket,
-        url: this.endpoints.graphql_ws,
+        url: this.#endpoints.graphql_ws,
         connectionParams: {
           credentials: 'include'
         }
@@ -188,33 +198,38 @@ class Client {
     })
 
     const authMiddleware = new ApolloLink((operation, forward) => {
-      if ('Authorization' in this.headers) {
+      if ('Authorization' in this.#headers) {
         operation.setContext({
           headers: {
-            Authorization: this.headers['Authorization']
+            Authorization: this.#headers['Authorization']
           }
         });
       }
       return forward(operation);
     })
 
-    this.apolloClient = new ApolloClient({
+    this.#apolloClient = new ApolloClient({
       link: errorLink.concat(authMiddleware.concat(link)),
       cache: new InMemoryCache(),
-      connectToDevTools: this.ENV === 'development' ? true : false
+      connectToDevTools: this.#ENV === 'development' ? true : false
     })
 
-    return this.apolloClient
+    return this.#apolloClient
   }
 
   createEmbeddedApolloProvider() {
     const { createApolloProvider } = require('@vue/apollo-option');
 
-    const apolloProvider = createApolloProvider({
-      defaultClient: this.apolloClient,
+    if (this.#apolloClient === null) {
+      console.log("INFO: create Apollo client")
+      this.createEmbeddedApolloClient();
+    }
+
+    this.#apolloProvider = createApolloProvider({
+      defaultClient: this.#apolloClient,
     })
 
-    return apolloProvider
+    return this.#apolloProvider
   }
 
 }

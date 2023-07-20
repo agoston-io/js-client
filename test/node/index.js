@@ -13,10 +13,10 @@ var { gql } = require('@apollo/client/core');
   }
 
   // Demo backend
-  const agostonClientDemo = await AgostonClient();
-  if (agostonClientDemo.isAuthenticated) {
-    console.log(`Welcome user ${agostonClientDemo.userId()} 👋! Your role is: ${agostonClientDemo.userRole()}.`);
-  }
+  // const agostonClientDemo = await AgostonClient();
+  // if (agostonClientDemo.isAuthenticated) {
+  //   console.log(`Welcome user ${agostonClientDemo.userId()} 👋! Your role is: ${agostonClientDemo.userRole()}.`);
+  // }
 
 })();
 
@@ -39,4 +39,7 @@ AgostonClient({
   // GraphQL
   const apolloClient = agostonClient.createEmbeddedApolloClient();
   apolloClient.query({ query: gql`query {session} ` }).then((result) => console.log(result));
+  const apolloProvider = agostonClient.createEmbeddedApolloProvider();
+  apolloClient2 = agostonClient.apolloClient();
+  apolloClient2.query({ query: gql`query {session} ` }).then((result) => console.log(result));
 });
