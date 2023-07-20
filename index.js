@@ -26,11 +26,11 @@ class Client {
     }
   }
 
-  async init(backendUrl, bearerToken) {
+  async init(params = {}) {
 
-    if (backendUrl !== undefined) {
+    if (params.backendUrl !== undefined) {
       this.demoMode = false
-      this.backendUrl = backendUrl;
+      this.backendUrl = params.backendUrl;
       if (this.backendUrl.slice(-1) === '/') {
         this.backendUrl = this.backendUrl.slice(0, -1)
       }
@@ -51,13 +51,14 @@ class Client {
     }
 
     // Load session
-    if (bearerToken !== undefined && !this.configuration.authentication.without_link["http-bearer"].enable) {
+    if (params.bearerToken !== undefined && !this.configuration.authentication.without_link["http-bearer"].enable) {
       throw new Error('Bearer authentication is not enabled on the backend.');
     }
-    if (bearerToken !== undefined) {
-      this.headers['Authorization'] = 'Bearer ' + bearerToken;
+    if (params.bearerToken !== undefined) {
+      this.headers['Authorization'] = 'Bearer ' + params.bearerToken;
     }
     await this.loadSession();
+
     return this;
   };
 
@@ -84,28 +85,32 @@ class Client {
     this.session = s.data.session
   }
 
+  isAuthenticated() {
+    return this.session?.is_authenticated || false
+  }
+
   // Getters
-  isAuthenticated() { return this.session.is_authenticated || false }
-  userId() { return this.session.user_id || 0 }
-  userAuthProvider() { return this.session.auth_provider || "" }
-  userAuthSubject() { return this.session.auth_subject || "0" }
-  userAuthData() { return this.session.auth_data || "{}" }
-  userRole() { return this.session.role || "anonymous" }
-  sessionId() { return this.session.session_id || "" }
+  userId() { return this.session?.user_id || 0 }
+  userAuthProvider() { return this.session?.auth_provider || "" }
+  userAuthSubject() { return this.session?.auth_subject || "0" }
+  userAuthData() { return this.session?.auth_data || "{}" }
+  userRole() { return this.session?.role || "anonymous" }
+  sessionId() { return this.session?.session_id || "" }
 
   // Auth with user/password
-  async loginOrSignUpWithUserPassword(username, password, free_value = {}, redirectSuccess = this.redirectSuccess, redirectError = this.redirectError) {
-    if (username === undefined || password === undefined) {
+  async loginOrSignUpWithUserPassword(params = {}) {
+    if (params.username === undefined || params.password === undefined) {
       throw new Error(`Missing username or password.`);
     }
-    var post_link = `${this.configuration.authentication.without_link["user-pwd"].post_auth_endpoint}?auth_redirect_success=${redirectSuccess}&auth_redirect_error=${redirectError}`;
+    var post_option = `?auth_redirect_success=${params.options?.redirectSuccess || this.redirectSuccess}&auth_redirect_error=${params.options?.redirectError || this.redirectError}`;
+    var post_link = `${this.configuration.authentication.without_link["user-pwd"].post_auth_endpoint}${post_option}`;
     if (this.mode === this.BROWSER) {
       const response = await fetch(post_link, {
         method: "POST",
         body: JSON.stringify({
           username: username,
           password: password,
-          free_value: free_value
+          free_value: params.options?.free_value || {}
         }),
       });
       return response.json();
@@ -115,25 +120,26 @@ class Client {
   }
 
   // Auth with link
-  loginOrSignUpFromProvider(strategyName, redirectSuccess = this.redirectSuccess, redirectError = this.redirectError) {
-    if (!(strategyName in this.configuration.authentication.with_link)) {
-      throw new Error(`unknown strategy provided: ${strategyName}. Check which strategy is enabled on '${this.backendUrl}/.well-known/configuration'.`);
+  loginOrSignUpFromProvider(params = {}) {
+    if (!(params.strategyName in this.configuration.authentication.with_link)) {
+      throw new Error(`unknown strategy provided: ${params.strategyName}. Check which strategy is enabled on '${this.backendUrl}/.well-known/configuration'.`);
     }
-    var auth_link = `${this.configuration.authentication.with_link[strategyName].auth_link}?auth_redirect_success=${redirectSuccess}&auth_redirect_error=${redirectError}`;
-    if (this.mode === this.BROWSER) {
-      window.location.href = auth_link;
-    } else {
-      console.log(`LOGOUT LINK: ${auth_link}`);
-    }
-  }
-
-  // Logout
-  logout() {
-    var auth_link = `${this.configuration.authentication.logout_link}?auth_redirect_logout=${this.redirectLogout}`;
+    var post_option = `?auth_redirect_success=${params.options?.redirectSuccess || this.redirectSuccess}&auth_redirect_error=${params.options?.redirectError || this.redirectError}`;
+    var auth_link = `${this.configuration.authentication.with_link[params.strategyName].auth_link}${post_option}`;
     if (this.mode === this.BROWSER) {
       window.location.href = auth_link;
     } else {
       console.log(`AUTH LINK: ${auth_link}`);
+    }
+  }
+
+  // Logout
+  logout(params = {}) {
+    var auth_link = `${this.configuration.authentication.logout_link}?auth_redirect_logout=${params.options?.redirectLogout || this.redirectLogout}`;
+    if (this.mode === this.BROWSER) {
+      window.location.href = auth_link;
+    } else {
+      console.log(`LOGOUT LINK: ${auth_link}`);
     }
   }
 
@@ -213,9 +219,9 @@ class Client {
 
 }
 
-async function AgostonClient(backendUrl, bearerToken) {
+async function AgostonClient(params) {
   c = new Client()
-  return c.init(backendUrl, bearerToken)
+  return c.init(params)
 }
 
 module.exports = AgostonClient;

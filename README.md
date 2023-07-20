@@ -57,7 +57,10 @@ AgostonClient().then(agostonClient => {
 ### Authenticate with user/password
 
 ```js
-agostonClient.loginOrSignUpWithUserPassword("niolap", "password")
+agostonClient.loginOrSignUpWithUserPassword("niolap", "password", options = { redirectSuccess: '/profile' })
+agostonClient.loginOrSignUpWithUserPassword(
+    "niolap", "password",
+    options = { free_value: { dateOfBirth: "1986.01.12" }, redirectSuccess: '/profile', redirectError: '/login' })
 ```
 
 ### Authenticate with bearer token
@@ -71,7 +74,7 @@ agostonClient.loginOrSignUpWithUserPassword("niolap", "password")
 ```js
 agostonClient.loginOrSignUpFromProvider("google-oauth20")
 agostonClient.loginOrSignUpFromProvider("github-oauth20")
-agostonClient.loginOrSignUpFromProvider("facebook-oauth20")
+agostonClient.loginOrSignUpFromProvider("facebook-oauth20", options = { redirectSuccess: '/profile' }))
 ```
 
 ### GraphQL Query
