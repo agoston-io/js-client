@@ -31,7 +31,6 @@ AgostonClient({
 
   // Authentication
   agostonClient.loginOrSignUpFromProvider({ strategyName: "google-oauth20" });
-  agostonClient.loginOrSignUpFromProvider({ strategyName: "auth0-oidc", options: { redirectSuccess: '/' } });
   agostonClient.loginOrSignUpWithUserPassword({ username: "niolap", password: "password", options: { redirectSuccess: '/' } });
   agostonClient.loginOrSignUpWithUserPassword({ username: "niolap", password: "password", options: { free_value: { dateOfBirth: "1986.01.12" }, redirectSuccess: '/' } });
   agostonClient.logout({ options: { redirectLogout: '/logout' } });

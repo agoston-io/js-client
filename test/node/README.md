@@ -1,5 +1,11 @@
 # Test for the Agoston client
 
+## TODO
+
+- auth for subscription? Working with WEB?
+- doc here with more examples + explanations + link to docs quick start
+- make next scroll liveshooping working
+
 ## Run test
 
 ```bash

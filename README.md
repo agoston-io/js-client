@@ -1,12 +1,5 @@
 # Agoston.io js client
 
-## TODO
-
-- TODO: replace  #backendUrl for demo
-- TODO: auth for subscription? Working with WEB?
-- TODO: make next scroll liveshooping working
-- TODO: doc here with more examples + explanations + link to docs quick start
-
 ## Implement
 
 ### 1. Install the library
