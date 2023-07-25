@@ -3,6 +3,7 @@
 ## TODO
 
 - auth for subscription? Working with WEB?
+- Nicer auth page
 - doc here with more examples + explanations + link to docs quick start
 - clean this help + force commit level 1
 ---------------------------------- send people
