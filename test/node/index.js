@@ -1,4 +1,4 @@
-var AgostonClient = require('@agoston-io/client');
+var { AgostonClient } = require('@agoston-io/client');
 var { gql } = require('@apollo/client/core');
 
 (async () => {
@@ -13,10 +13,10 @@ var { gql } = require('@apollo/client/core');
   }
 
   // Demo backend
-  // const agostonClientDemo = await AgostonClient();
-  // if (agostonClientDemo.isAuthenticated) {
-  //   console.log(`Welcome user ${agostonClientDemo.userId()} 👋! Your role is: ${agostonClientDemo.userRole()}.`);
-  // }
+  const agostonClientDemo = await AgostonClient();
+  if (agostonClientDemo.isAuthenticated) {
+    console.log(`Welcome user ${agostonClientDemo.userId()} 👋! Your role is: ${agostonClientDemo.userRole()}.`);
+  }
 
 })();
 

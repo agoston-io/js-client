@@ -5,7 +5,7 @@ class Client {
   #ENV = process.env.NODE_ENV || 'development' === 'development';
   #BROWSER = 'browser';
   #CMD = 'cmd';
-  #mode = this.CMD;
+  #mode = this.#CMD;
   #demoMode = true;
   #backendUrl = 'https://27ec7d04-5b17-46bb-a69f-8ba4a27caef0.2c059b20-a200-45aa-8492-0e2891e14832.backend.agoston.io';
   #endpoints = {
@@ -28,7 +28,7 @@ class Client {
   async init(params = {}) {
 
     if (typeof Window !== 'undefined') {
-      this.#mode = this.BROWSER;
+      this.#mode = this.#BROWSER;
       this.#base_url = window.location.href;
       this.#redirectSuccess = this.#base_url;
       this.#redirectError = this.#base_url;
@@ -111,21 +111,28 @@ class Client {
     if (params.username === undefined || params.password === undefined) {
       throw new Error(`Missing username or password.`);
     }
-    var post_option = `?auth_redirect_success=${params.options?.redirectSuccess || this.#redirectSuccess}&auth_redirect_error=${params.options?.redirectError || this.#redirectError}`;
+    var post_option = `?redirect=false`;
     var post_link = `${this.#configuration.authentication.without_link["user-pwd"].post_auth_endpoint}${post_option}`;
     if (this.#mode === this.#BROWSER) {
-      const response = await fetch(post_link, {
+      var response = await fetch(post_link, {
         method: "POST",
+        credentials: "include",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
-          username: username,
-          password: password,
-          free_value: params.options?.free_value || {}
-        }),
+          username: params.username || 'null',
+          password: params.password || 'null',
+          free_value: params.free_value || {}
+        })
       });
-      return response.json();
-    } else {
-      console.log(`POST LINK: ${post_link}`);
+      var ret = await response.json()
+      var err;
+      if (response.status !== 200) { err = response.status }
+      return { error: err, message: ret.message }
     }
+    return { error: err, message: `POST LINK: ${post_link}` }
   }
 
   // Auth with link
@@ -135,6 +142,7 @@ class Client {
     }
     var post_option = `?auth_redirect_success=${params.options?.redirectSuccess || this.#redirectSuccess}&auth_redirect_error=${params.options?.redirectError || this.#redirectError}`;
     var auth_link = `${this.#configuration.authentication.with_link[params.strategyName].auth_link}${post_option}`;
+
     if (this.#mode === this.#BROWSER) {
       window.location.href = auth_link;
     } else {
@@ -220,7 +228,6 @@ class Client {
     const { createApolloProvider } = require('@vue/apollo-option');
 
     if (this.#apolloClient === null) {
-      console.log("INFO: create Apollo client")
       this.createEmbeddedApolloClient();
     }
 
@@ -238,4 +245,5 @@ async function AgostonClient(params) {
   return c.init(params)
 }
 
-module.exports = AgostonClient;
+
+exports.AgostonClient = AgostonClient

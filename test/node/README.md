@@ -4,6 +4,8 @@
 
 - auth for subscription? Working with WEB?
 - doc here with more examples + explanations + link to docs quick start
+- clean this help + force commit level 1
+---------------------------------- send people
 - make next scroll liveshooping working
 
 ## Run test
