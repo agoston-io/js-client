@@ -124,13 +124,13 @@ class Client {
         body: JSON.stringify({
           username: params.username || 'null',
           password: params.password || 'null',
-          free_value: params.free_value || {}
+          data: params.data || {}
         })
       });
       var ret = await response.json()
-      var err;
-      if (response.status !== 200) { err = response.status }
-      return { error: err, message: ret.message }
+      var error;
+      if (response.status !== 200) { error = ret.message }
+      return error
     }
     return { error: err, message: `POST LINK: ${post_link}` }
   }
