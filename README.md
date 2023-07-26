@@ -61,18 +61,13 @@ AgostonClient().then(agostonClient => {
 agostonClient.loginOrSignUpWithUserPassword({
     username: "niolap",
     password: "password",
-    options: {
-        redirectSuccess: '/'
-    }
 });
 agostonClient.loginOrSignUpWithUserPassword({
     username: "niolap",
     password: "password",
-    options: {
-        redirectSuccess: '/',
-        free_value: {
-            dateOfBirth: "1986.01.12"
-            },
+    data: {
+        dateOfBirth: "1986.01.12"
+    },
     }
 });
 ```
