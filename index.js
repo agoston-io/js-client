@@ -124,7 +124,7 @@ class Client {
         body: JSON.stringify({
           username: params.username || 'null',
           password: params.password || 'null',
-          data: params.data || {}
+          free_value: params.data || {}
         })
       });
       var ret = await response.json()
