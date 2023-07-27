@@ -7,7 +7,7 @@ class Client {
   #CMD = 'cmd';
   #mode = this.#CMD;
   #demoMode = true;
-  #backendUrl = 'https://27ec7d04-5b17-46bb-a69f-8ba4a27caef0.2c059b20-a200-45aa-8492-0e2891e14832.backend.agoston.io';
+  #backendUrl = 'https://f753b978-a7db-4375-8adf-0649aeff2673.2c059b20-a200-45aa-8492-0e2891e14832.backend.agoston.io';
   #endpoints = {
     graphql: `${this.#backendUrl}/data/graphql`,
     graphql_ws: `${this.#backendUrl}/data/graphql`
