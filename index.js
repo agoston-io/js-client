@@ -166,7 +166,6 @@ class Client {
     const { ApolloClient, HttpLink, ApolloLink, split, InMemoryCache } = require('@apollo/client/core');
     const { onError } = require('@apollo/client/link/error');
     const { GraphQLWsLink } = require('@apollo/client/link/subscriptions');
-    const { WebSocket } = require('ws');
     const { createClient } = require('graphql-ws');
     const { getMainDefinition } = require('@apollo/client/utilities');
 
@@ -176,13 +175,13 @@ class Client {
     })
     const wsLink = new GraphQLWsLink(
       createClient({
-        webSocketImpl: WebSocket,
         url: this.#endpoints.graphql_ws,
         connectionParams: {
           credentials: 'include'
         }
       })
     )
+
     const link = split(
       ({ query }) => {
         const definition = getMainDefinition(query)
