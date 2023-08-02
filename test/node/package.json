@@ -5,7 +5,6 @@
   },
   "dependencies": {
     "@agoston-io/client": "file:../..",
-    "@apollo/client": "^3.7.17",
     "graphql": "^16.7.1"
   }
 }

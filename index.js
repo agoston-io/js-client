@@ -132,7 +132,8 @@ class Client {
       if (response.status !== 200) { error = ret.message }
       return error
     }
-    return { error: err, message: `POST LINK: ${post_link}` }
+    console.log(`POST LINK: ${post_link}`)
+    return
   }
 
   // Auth with link
@@ -173,24 +174,28 @@ class Client {
       uri: this.#endpoints.graphql,
       credentials: 'include'
     })
-    const wsLink = new GraphQLWsLink(
-      createClient({
-        url: this.#endpoints.graphql_ws,
-        connectionParams: {
-          credentials: 'include'
-        }
-      })
-    )
 
-    const link = split(
-      ({ query }) => {
-        const definition = getMainDefinition(query)
-        return definition.kind === 'OperationDefinition' &&
-          definition.operation === 'subscription'
-      },
-      wsLink,
-      httpLink
-    )
+    var link = httpLink;
+    if (this.#mode === this.#BROWSER) {
+      const wsLink = new GraphQLWsLink(
+        createClient({
+          url: this.#endpoints.graphql_ws,
+          connectionParams: {
+            credentials: 'include'
+          }
+        })
+      );
+
+      link = split(
+        ({ query }) => {
+          const definition = getMainDefinition(query)
+          return definition.kind === 'OperationDefinition' &&
+            definition.operation === 'subscription'
+        },
+        wsLink,
+        httpLink
+      );
+    }
 
     // Handle errors
     const errorLink = onError(({ graphQLErrors, networkError }) => {
@@ -240,7 +245,7 @@ class Client {
 }
 
 async function AgostonClient(params) {
-  c = new Client()
+  const c = new Client()
   return c.init(params)
 }
 
