@@ -8,13 +8,13 @@ var { gql } = require('@apollo/client/core');
     backendUrl: process.env.AGOSTON_BACKEND_URL,
     bearerToken: process.env.AGOSTON_BACKEND_URL_BEARER_TOKEN
   });
-  if (agostonClient.isAuthenticated) {
+  if (agostonClient.isAuthenticated()) {
     console.log(`Welcome user ${agostonClient.userId()} 👋! Your role is: ${agostonClient.userRole()}.`);
   }
 
   // Demo backend
   const agostonClientDemo = await AgostonClient();
-  if (agostonClientDemo.isAuthenticated) {
+  if (agostonClientDemo.isAuthenticated()) {
     console.log(`Welcome user ${agostonClientDemo.userId()} 👋! Your role is: ${agostonClientDemo.userRole()}.`);
   }
 

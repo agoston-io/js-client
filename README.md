@@ -19,7 +19,7 @@ import { AgostonClient } from '@agoston-io/client'
 ```js
 // promise with async/await
 const agostonClient = await AgostonClient({ backendUrl: process.env.AGOSTON_BACKEND_URL });
-if (agostonClient.isAuthenticated) {
+if (agostonClient.isAuthenticated()) {
     console.log(`Welcome user ${agostonClient.userId()} 👋! Your role is: ${agostonClient.userRole()}.`);
 }
 
