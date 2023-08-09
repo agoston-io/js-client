@@ -1,6 +1,8 @@
 # Agoston.io js client
 
-## Implement
+Client that connect an [Agoston.io](https://agoston.io) backend to you Vue.JS project.
+
+## Usage
 
 ### 1. Install the library
 
@@ -15,6 +17,8 @@ import { AgostonClient } from '@agoston-io/client'
 ```
 
 ### 3. Create the client
+
+**NOTE:** if you don't have any backend yet, just call the client with no parameters: `AgostonClient()`.
 
 ```js
 // promise with async/await
