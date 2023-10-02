@@ -105,6 +105,7 @@ class Client {
   sessionId() { return this.#session?.session_id || "" }
   apolloClient() { return this.#apolloClient }
   apolloProvider() { return this.#apolloProvider }
+  session() { return this.#session || "{}" }
 
   // Auth with user/password
   async loginOrSignUpWithUserPassword(params = {}) {
@@ -129,7 +130,9 @@ class Client {
       });
       var ret = await response.json()
       var error;
-      if (response.status !== 200) { error = ret.message }
+      if (response.status !== 200) { error = ret.message } else {
+        await this.#loadSession();
+      }
       return error
     }
     console.log(`POST LINK: ${post_link}`)

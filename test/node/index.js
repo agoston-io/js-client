@@ -33,6 +33,15 @@ AgostonClient({
   agostonClient.loginOrSignUpFromProvider({ strategyName: "google-oauth20" });
   agostonClient.loginOrSignUpWithUserPassword({ username: "niolap", password: "password", options: { redirectSuccess: '/' } });
   agostonClient.loginOrSignUpWithUserPassword({ username: "niolap", password: "password", options: { free_value: { dateOfBirth: "1986.01.12" }, redirectSuccess: '/' } });
+  console.log(`agostonClient.session() => ${JSON.stringify(agostonClient.session())}`);
+  console.log(`agostonClient.userId() => ${JSON.stringify(agostonClient.userId())}`);
+  console.log(`agostonClient.userAuthProvider() => ${JSON.stringify(agostonClient.userAuthProvider())}`);
+  console.log(`agostonClient.userAuthSubject() => ${JSON.stringify(agostonClient.userAuthSubject())}`);
+  console.log(`agostonClient.userAuthData() => ${JSON.stringify(agostonClient.userAuthData())}`);
+  console.log(`agostonClient.userRole() => ${JSON.stringify(agostonClient.userRole())}`);
+  console.log(`agostonClient.sessionId() => ${JSON.stringify(agostonClient.sessionId())}`);
+  agostonClient.apolloClient();
+  agostonClient.apolloProvider();
   agostonClient.logout({ options: { redirectLogout: '/logout' } });
 
   // GraphQL
