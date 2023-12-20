@@ -43,6 +43,7 @@ class Client {
       }
     } else {
       console.log(`No backend URL provided, working with the demo backend '${this.#backendUrl}'.`)
+      console.log(`To use your own backend, get your backend URL in the Agoston.io console.`)
     }
 
     // Load configuration
@@ -141,6 +142,7 @@ class Client {
 
   // Auth with link
   loginOrSignUpFromProvider(params = {}) {
+    if (params.strategyName === undefined) { params.strategyName = 'default-auth0-oidc'; }
     if (!(params.strategyName in this.#configuration.authentication.with_link)) {
       throw new Error(`unknown strategy provided: ${params.strategyName}. Check which strategy is enabled on '${this.#backendUrl}/.well-known/configuration'.`);
     }

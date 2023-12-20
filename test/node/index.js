@@ -30,6 +30,8 @@ AgostonClient({
   }
 
   // Authentication
+  agostonClient.loginOrSignUpFromProvider();
+  agostonClient.loginOrSignUpFromProvider({ options: { redirectSuccess: '/profile', redirectError: '/login' } });
   agostonClient.loginOrSignUpFromProvider({ strategyName: "google-oauth20" });
   agostonClient.loginOrSignUpWithUserPassword({ username: "niolap", password: "password", options: { redirectSuccess: '/' } });
   agostonClient.loginOrSignUpWithUserPassword({ username: "niolap", password: "password", options: { free_value: { dateOfBirth: "1986.01.12" }, redirectSuccess: '/' } });

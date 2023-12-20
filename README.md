@@ -1,6 +1,8 @@
 # Agoston.io js client
 
-Client that connect an [Agoston.io](https://agoston.io) backend to you Vue.JS project.
+A client that connects an [Agoston.io](https://agoston.io) backend to your frontend project.
+The client allows you to authenticate and log out your users and exposes a preconfigured
+Apollo client ready to handle your GraphQL queries, mutations, and subscriptions.
 
 ## Usage
 
@@ -18,7 +20,8 @@ import { AgostonClient } from '@agoston-io/client'
 
 ### 3. Create the client
 
-**NOTE:** if you don't have any backend yet, just call the client with no parameters: `AgostonClient()`.
+**NOTE:** For test purposes, you can just call the client with no parameters: `AgostonClient()`.
+This will connect you to the default demo Agoston backend.
 
 ```js
 // promise with async/await
@@ -120,6 +123,12 @@ agostonClient.loginOrSignUpFromProvider({
         redirectSuccess: '/profile'
     }
 });
+```
+
+### Logout
+
+```js
+agostonClient.logout({ options: { redirectLogout: '/' } })
 ```
 
 ### GraphQL Query
