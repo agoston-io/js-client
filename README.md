@@ -67,20 +67,20 @@ AgostonClient().then(agostonClient => {
 ### Authenticate with user/password
 
 ```js
-var err = await agostonClient.loginOrSignUpWithUserPassword({
+agostonClient.loginOrSignUpWithUserPassword({
     username: "niolap",
-    password: "password",
-});
-var err = await agostonClient.loginOrSignUpWithUserPassword({
-    username: "niolap",
-    password: "password",
-    data: {
-        dateOfBirth: "1986.01.12"
+    password: "password7-F4-",
+    options: {
+        free_value: {
+            dateOfBirth: "1986.01.12"
+        },
+        redirectSuccess: '/'
     }
+}).then(session => {
+    console.log(`auth_success: ${JSON.stringify(session)}`)
+}).catch(error => {
+    console.log(`auth_error: ${error}`)
 });
-if (err) {
-    console.log(`Login error: ${err}`)
-}
 ```
 
 ### Authenticate with bearer token
@@ -128,7 +128,13 @@ agostonClient.loginOrSignUpFromProvider({
 ### Logout
 
 ```js
-agostonClient.logout({ options: { redirectLogout: '/' } })
+this.$agostonClient.logout()
+    .then(session => {
+        console.log(`logout_success: ${JSON.stringify(session)}`)
+        window.location.href = '/';
+    }).catch(error => {
+        console.log(`logout_error: ${error}`)
+    });
 ```
 
 ### GraphQL Query

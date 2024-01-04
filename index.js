@@ -24,6 +24,7 @@ class Client {
   #session = {};
   #apolloClient = null;
   #apolloProvider = null;
+  #cookie = null;
 
   async init(params = {}) {
 
@@ -88,6 +89,9 @@ class Client {
         query: 'query { session }'
       }),
     };
+    if (this.#mode === this.#CMD) {
+      options.headers["Cookie"] = this.#cookie
+    }
     const response = await fetch(`${this.#backendUrl}/data/graphql`, options);
     var s = await response.json();
     this.#session = s.data.session
@@ -115,33 +119,43 @@ class Client {
     }
     var post_option = `?redirect=false`;
     var post_link = `${this.#configuration.authentication.without_link["user-pwd"].post_auth_endpoint}${post_option}`;
-    if (this.#mode === this.#BROWSER) {
-      var response = await fetch(post_link, {
+
+    return new Promise((resolve, reject) => {
+      fetch(post_link, {
         method: "POST",
         credentials: "include",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
+        headers: this.#headers,
         body: JSON.stringify({
           username: params.username || 'null',
           password: params.password || 'null',
-          free_value: params.data || {}
+          free_value: params.options?.free_value || {}
         })
-      });
-      var ret = await response.json()
-      var error;
-      if (response.status !== 200) { error = ret.message } else {
-        await this.#loadSession();
-      }
-      return error
-    }
-    console.log(`POST LINK: ${post_link}`)
-    return
+      })
+        .then((response) => {
+          response.json().then((responseJson) => {
+            if (response.ok) {
+              if (this.#mode === this.#CMD) {
+                this.#cookie = response.headers.get('set-cookie');
+              }
+              this.#loadSession().then(() => {
+                resolve(this.#session)
+              }).catch((error) => {
+                reject(error);
+              });;
+            } else {
+              reject(responseJson.message)
+            }
+          })
+        })
+        .catch((error) => {
+          reject(error);
+        });
+
+    });
   }
 
   // Auth with link
-  loginOrSignUpFromProvider(params = {}) {
+  async loginOrSignUpFromProvider(params = {}) {
     if (params.strategyName === undefined) { params.strategyName = 'default-auth0-oidc'; }
     if (!(params.strategyName in this.#configuration.authentication.with_link)) {
       throw new Error(`unknown strategy provided: ${params.strategyName}. Check which strategy is enabled on '${this.#backendUrl}/.well-known/configuration'.`);
@@ -157,13 +171,33 @@ class Client {
   }
 
   // Logout
-  logout(params = {}) {
-    var auth_link = `${this.#configuration.authentication.logout_link}?auth_redirect_logout=${params.options?.redirectLogout || this.#redirectLogout}`;
-    if (this.#mode === this.#BROWSER) {
-      window.location.href = auth_link;
-    } else {
-      console.log(`LOGOUT LINK: ${auth_link}`);
+  async logout(params = {}) {
+    var logout_link = `${this.#configuration.authentication.logout_link}`;
+    const options = {
+      method: "POST",
+      credentials: "include",
+      headers: this.#headers
+    };
+    if (this.#mode === this.#CMD) {
+      options.headers["Cookie"] = this.#cookie
     }
+    return new Promise((resolve, reject) => {
+      fetch(logout_link, options)
+        .then((response) => {
+          if (response.ok) {
+            this.#loadSession().then(() => {
+              resolve(this.#session)
+            }).catch((error) => {
+              reject(error);
+            });
+          } else {
+            reject(JSON.stringify(response))
+          }
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    });
   }
 
   // Apollo client thin
