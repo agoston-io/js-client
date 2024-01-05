@@ -128,7 +128,7 @@ agostonClient.loginOrSignUpFromProvider({
 ### Logout
 
 ```js
-this.$agostonClient.logout()
+agostonClient.logout()
     .then(session => {
         console.log(`logout_success: ${JSON.stringify(session)}`)
         window.location.href = '/';
