@@ -64,6 +64,45 @@ AgostonClient().then(agostonClient => {
 });
 ```
 
+### Custom query
+
+You may want to add an extra custom GraphQL query at the `AgostonClient` initialization time.
+This query will be run within the backend and returned to the client, avoiding an extra round trip to the backend if you need to initialize application data, for instance.
+
+```js
+AgostonClient({
+  backendUrl: process.env.AGOSTON_BACKEND_URL,
+  customGraphQLQuery: {
+    query: `query channels {
+                channels {
+                    totalCount
+                    aggregates {
+                        distinctCount {
+                            userId
+                        }
+                    }
+                }
+            }`,
+    variables: {id: 1} // if your query has variables
+    }
+}).then(agostonClient => {
+  customGraphQLQueryResult = agostonClient.customGraphQLQueryResult();
+  // customGraphQLQueryResult:
+  // {
+  //   "data": {
+  //     "channels": {
+  //       "totalCount": 2703,
+  //       "aggregates": {
+  //         "distinctCount": {
+  //           "userId": "55"
+  //         }
+  //       }
+  //     }
+  //   }
+  // }
+});
+```
+
 ### Authenticate with user/password
 
 ```js

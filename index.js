@@ -25,9 +25,13 @@ class Client {
   #apolloClient = null;
   #apolloProvider = null;
   #cookie = null;
+  #customGraphQLQueryEncoded = null;
+  #customGraphQLQueryVariablesEncoded = null;
+  #configurationUrlParam = `?`;
 
   async init(params = {}) {
 
+    // Checks
     if (typeof Window !== 'undefined') {
       this.#mode = this.#BROWSER;
       this.#base_url = window.location.href;
@@ -47,9 +51,35 @@ class Client {
       console.log(`To use your own backend, get your backend URL in the Agoston.io console.`)
     }
 
+    if (params.bearerToken !== undefined) {
+      this.#headers['Authorization'] = 'Bearer ' + params.bearerToken;
+    }
+
+    // Custom query
+    if (params.customGraphQLQuery !== undefined) {
+      if (typeof params.customGraphQLQuery !== 'object') {
+        throw new Error('customGraphQLQuery must be an object.');
+      }
+      if (params.customGraphQLQuery.query === undefined) {
+        throw new Error('customGraphQLQuery.query missing.');
+      }
+      this.#configurationUrlParam = this.#configurationUrlParam + '&gq=' + encodeURI(params.customGraphQLQuery.query);
+      if (params.customGraphQLQuery.variables !== undefined) {
+        if (typeof params.customGraphQLQuery.variables !== 'object') {
+          throw new Error('customGraphQLQuery.variables must be an object.');
+        }
+        this.#configurationUrlParam = this.#configurationUrlParam + '&gqv=' + encodeURI(JSON.stringify(params.customGraphQLQuery.variables));
+      }
+    }
+
     // Load configuration
     await this.#loadConfiguration();
     this.#endpoints = this.#configuration.endpoints;
+
+    // Checks with config
+    if (params.bearerToken !== undefined && !this.#configuration.authentication.without_link["http-bearer"].enable) {
+      throw new Error('Bearer authentication is not enabled on the backend.');
+    }
 
     // Redirect
     if (this.#mode === this.CMD) {
@@ -60,14 +90,7 @@ class Client {
     }
 
     // Load session
-    if (params.bearerToken !== undefined && !this.#configuration.authentication.without_link["http-bearer"].enable) {
-      throw new Error('Bearer authentication is not enabled on the backend.');
-    }
-    if (params.bearerToken !== undefined) {
-      this.#headers['Authorization'] = 'Bearer ' + params.bearerToken;
-    }
-    await this.#loadSession();
-
+    this.#session = this.#configuration.currentSession;
     return this;
   };
 
@@ -76,7 +99,8 @@ class Client {
       method: "GET",
       headers: this.#headers,
     };
-    const response = await fetch(`${this.#backendUrl}/.well-known/configuration`, options);
+    const configurationUrl = `${this.#backendUrl}/.well-known/configuration${this.#configurationUrlParam}`;
+    const response = await fetch(configurationUrl, options);
     this.#configuration = await response.json();
   }
 
@@ -111,6 +135,7 @@ class Client {
   apolloClient() { return this.#apolloClient }
   apolloProvider() { return this.#apolloProvider }
   session() { return this.#session || "{}" }
+  customGraphQLQueryResult() { return this.#configuration.customGraphQLQueryResult }
 
   // Auth with user/password
   async loginOrSignUpWithUserPassword(params = {}) {
