@@ -1,6 +1,6 @@
 {
   "name": "@agoston-io/client",
-  "version": "1.1.8",
+  "version": "1.1.9",
   "description": "JS client for Agoston.io backends",
   "main": "index.js",
   "scripts": {

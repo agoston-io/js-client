@@ -97,6 +97,7 @@ class Client {
   async #loadConfiguration() {
     const options = {
       method: "GET",
+      credentials: "include",
       headers: this.#headers,
     };
     const configurationUrl = `${this.#backendUrl}/.well-known/configuration${this.#configurationUrlParam}`;
