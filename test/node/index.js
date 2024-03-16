@@ -110,10 +110,9 @@ AgostonClient({
   assert(agostonClient.userRole() === "anonymous");
 
   // GraphQL
-  const apolloClient = agostonClient.createEmbeddedApolloClient();
-  apolloClient.query({ query: gql`query {session} ` }).then((result) => console.log(result));
-  const apolloProvider = agostonClient.createEmbeddedApolloProvider();
+  const apolloClient1 = await agostonClient.createEmbeddedApolloClient();
+  apolloClient1.query({ query: gql`query {session}` }).then((result) => console.log(result));
   apolloClient2 = agostonClient.apolloClient();
-  apolloClient2.query({ query: gql`query {session} ` }).then((result) => console.log(result));
+  apolloClient2.query({ query: gql`query {session}` }).then((result) => console.log(result));
 });
 

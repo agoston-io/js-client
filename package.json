@@ -1,6 +1,6 @@
 {
   "name": "@agoston-io/client",
-  "version": "1.1.9",
+  "version": "1.2.0",
   "description": "JS client for Agoston.io backends",
   "main": "index.js",
   "scripts": {
@@ -22,7 +22,7 @@
   "homepage": "https://github.com/agoston-io/js-client#readme",
   "dependencies": {
     "@apollo/client": "^3.7.17",
-    "@vue/apollo-option": "^4.0.0-beta.5",
+    "apollo-upload-client": "^18.0.1",
     "graphql-ws": "^5.14.0",
     "node-fetch": "^2.6.12"
   }

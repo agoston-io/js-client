@@ -227,20 +227,22 @@ class Client {
   }
 
   // Apollo client thin
-  createEmbeddedApolloClient() {
+  async createEmbeddedApolloClient() {
 
-    const { ApolloClient, HttpLink, ApolloLink, split, InMemoryCache } = require('@apollo/client/core');
+    const { ApolloClient, ApolloLink, split, InMemoryCache } = require('@apollo/client/core');
     const { onError } = require('@apollo/client/link/error');
     const { GraphQLWsLink } = require('@apollo/client/link/subscriptions');
     const { createClient } = require('graphql-ws');
     const { getMainDefinition } = require('@apollo/client/utilities');
+    const createUploadLink = await import('apollo-upload-client/createUploadLink.mjs');
 
-    const httpLink = new HttpLink({
+    // Apollo terminal link => Upload link (overload HttpLink)
+    const terminalLink = createUploadLink.default({
       uri: this.#endpoints.graphql,
-      credentials: 'include'
+      credentials: 'include',
     })
 
-    var link = httpLink;
+    var link = terminalLink;
     if (this.#mode === this.#BROWSER) {
       const wsLink = new GraphQLWsLink(
         createClient({
@@ -258,21 +260,22 @@ class Client {
             definition.operation === 'subscription'
         },
         wsLink,
-        httpLink
+        terminalLink
       );
     }
 
     // Handle errors
     const errorLink = onError(({ graphQLErrors, networkError }) => {
       if (graphQLErrors)
-        graphQLErrors.map(({ message, locations, stack }) => {
-          console.log(`[GraphQL error]: Message: ${message}, Location: ${locations}, Stack: ${stack}`)
-        }
-        )
+        graphQLErrors.forEach(({ message, locations, path }) =>
+          console.log(
+            `[GraphQL error]: Message: ${message}, Location: ${JSON.stringify(locations)}, Path: ${path}`
+          )
+        );
+      if (networkError) console.log(`[Network error]: ${networkError}`);
+    });
 
-      if (networkError) console.error(`[Network]: ${networkError}`)
-    })
-
+    // Auth middleware
     const authMiddleware = new ApolloLink((operation, forward) => {
       if ('Authorization' in this.#headers) {
         operation.setContext({
@@ -284,29 +287,19 @@ class Client {
       return forward(operation);
     })
 
+
     this.#apolloClient = new ApolloClient({
-      link: errorLink.concat(authMiddleware.concat(link)),
+      link: ApolloLink.from([
+        authMiddleware,
+        errorLink,
+        link,
+      ]),
       cache: new InMemoryCache(),
       connectToDevTools: this.#ENV === 'development' ? true : false
-    })
+    });
 
     return this.#apolloClient
   }
-
-  createEmbeddedApolloProvider() {
-    const { createApolloProvider } = require('@vue/apollo-option');
-
-    if (this.#apolloClient === null) {
-      this.createEmbeddedApolloClient();
-    }
-
-    this.#apolloProvider = createApolloProvider({
-      defaultClient: this.#apolloClient,
-    })
-
-    return this.#apolloProvider
-  }
-
 }
 
 async function AgostonClient(params) {
