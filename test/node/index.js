@@ -27,7 +27,7 @@ AgostonClient({
 AgostonClient({
   backendUrl: process.env.AGOSTON_BACKEND_URL,
   customGraphQLQuery: { query: `query {session}` }
-}).then(async (agostonClient) => {
+}).then(async agostonClient => {
 
   // Session
   assert(typeof agostonClient.isAuthenticated() === "boolean");

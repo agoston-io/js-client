@@ -2,7 +2,7 @@
 
 A client that connects an [Agoston.io](https://agoston.io) backend to your frontend project.
 The client allows you to authenticate and log out your users and exposes a preconfigured
-Apollo client ready to handle your GraphQL queries, mutations, and subscriptions.
+Apollo client ready to handle your GraphQL queries, mutations, subscriptions and file uploads.
 
 ## Usage
 
@@ -37,14 +37,14 @@ apolloClient.query({ query: gql`query {session} ` }).then((result) => console.lo
 
 ```js
 // promise with then/catch
-AgostonClient({ backendUrl: process.env.AGOSTON_BACKEND_URL }).then(agostonClient => {
+AgostonClient({ backendUrl: process.env.AGOSTON_BACKEND_URL }).then(async agostonClient => {
 
     if (agostonClient.isAuthenticated()) {
         console.log(`Welcome user ${agostonClient.userId()} 👋! Your role is: ${agostonClient.userRole()}.`);
     }
 
     // GraphQL
-    const apolloClient = agostonClient.createEmbeddedApolloClient();
+    const apolloClient = await agostonClient.createEmbeddedApolloClient();
     apolloClient.query({ query: gql`query {session} ` }).then((result) => console.log(result));
 
 });
@@ -182,9 +182,9 @@ The Agoston package comes with an embedded Apollo client preconfigured with your
 In most cases, it's good enough. You can create your own Apollo client if you need more specific Apollo configuration.
 
 ```js
-AgostonClient({ backendUrl: process.env.AGOSTON_BACKEND_URL }).then(agostonClient => {
+AgostonClient({ backendUrl: process.env.AGOSTON_BACKEND_URL }).then(async agostonClient => {
 
-    const apolloClient = agostonClient.createEmbeddedApolloClient();
+    const apolloClient = await agostonClient.createEmbeddedApolloClient();
     apolloClient.query({ query: gql`query {session} ` }).then((result) => console.log(result));
 
 });
