@@ -55,7 +55,7 @@ AgostonClient({ backendUrl: process.env.AGOSTON_BACKEND_URL }).then(async agosto
 ### Create client with the demo backend
 
 ```js
-AgostonClient().then(agostonClient => {
+AgostonClient().then(async agostonClient => {
     if (agostonClient.isAuthenticated()) {
         console.log(`Welcome user ${agostonClient.userId()} 👋! Your role is: ${agostonClient.userRole()}.`);
         console.log(`Auth provider: ${agostonClient.userAuthProvider()}`);
@@ -85,7 +85,7 @@ AgostonClient({
             }`,
     variables: {id: 1} // if your query has variables
     }
-}).then(agostonClient => {
+}).then(async agostonClient => {
   customGraphQLQueryResult = agostonClient.customGraphQLQueryResult();
   // customGraphQLQueryResult:
   // {
@@ -128,7 +128,7 @@ agostonClient.loginOrSignUpWithUserPassword({
 AgostonClient({
   backendUrl: process.env.AGOSTON_BACKEND_URL,
   bearerToken: process.env.AGOSTON_BACKEND_URL_BEARER_TOKEN
-}).then(agostonClient => {
+}).then(async agostonClient => {
   if (agostonClient.isAuthenticated()) {
     console.log(`Welcome user ${agostonClient.userId()} 👋! Your role is: ${agostonClient.userRole()}.`);
   }
