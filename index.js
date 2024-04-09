@@ -227,14 +227,14 @@ class Client {
   }
 
   // Apollo client thin
-  async createEmbeddedApolloClient() {
+  createEmbeddedApolloClient() {
 
     const { ApolloClient, ApolloLink, split, InMemoryCache } = require('@apollo/client/core');
     const { onError } = require('@apollo/client/link/error');
     const { GraphQLWsLink } = require('@apollo/client/link/subscriptions');
     const { createClient } = require('graphql-ws');
     const { getMainDefinition } = require('@apollo/client/utilities');
-    const createUploadLink = await import('apollo-upload-client/createUploadLink.mjs');
+    const createUploadLink = require('apollo-upload-client/createUploadLink.mjs');
 
     // Apollo terminal link => Upload link (overload HttpLink)
     const terminalLink = createUploadLink.default({
@@ -306,6 +306,5 @@ async function AgostonClient(params) {
   const c = new Client()
   return c.init(params)
 }
-
 
 exports.AgostonClient = AgostonClient

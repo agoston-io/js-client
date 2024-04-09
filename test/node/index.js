@@ -109,10 +109,5 @@ AgostonClient({
   assert(!agostonClient.isAuthenticated());
   assert(agostonClient.userRole() === "anonymous");
 
-  // GraphQL
-  const apolloClient1 = await agostonClient.createEmbeddedApolloClient();
-  apolloClient1.query({ query: gql`query {session}` }).then((result) => console.log(result));
-  apolloClient2 = agostonClient.apolloClient();
-  apolloClient2.query({ query: gql`query {session}` }).then((result) => console.log(result));
 });
 
