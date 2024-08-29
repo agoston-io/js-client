@@ -184,7 +184,10 @@ class Client {
     });
   }
 
-  // Auth with link
+  /**
+   * Initial the login process with the third pary authentication provider.
+   * @returns nothing
+   */
   async loginOrSignUpFromProvider(params = {}) {
     if (params.strategyName === undefined) { params.strategyName = 'default-auth0-oidc'; }
     if (!(params.strategyName in this.#configuration.authentication.with_link)) {
@@ -201,8 +204,10 @@ class Client {
   }
 
   /**
-   * Logout the user by destroying its session in the backend
-   * and the third party OIDC provider if any.
+   * logout() log the user out by destroying its session in the backend
+   * and the third party OIDC provider if any (for OIDC provider,
+   * the logout url and the ID token is return from the backend
+   * in the response: res.oidc)
    * @returns a promise
    */
   async logout() {
@@ -216,17 +221,31 @@ class Client {
       options.headers["Cookie"] = this.#cookie
     }
     return new Promise((resolve, reject) => {
+
       fetch(logout_link, options)
-        .then((response) => {
-          if (response.ok) {
-            this.#loadSession().then(() => {
-              resolve(this.#session)
-            }).catch((error) => {
-              reject(error);
-            });
-          } else {
-            reject(JSON.stringify(response))
+        .then(response => response.json())
+        .then((data) => {
+
+          // If OIDC session: log out from OIDC
+          if (data.oidc?.has_oidc_session || false) {
+            fetch(`${data.oidc.end_session_endpoint}?id_token_hint=${encodeURIComponent(data.oidc.session_id_token)}`, {
+              method: "GET",
+              credentials: "include",
+              mode: 'no-cors',
+            })
+              .then(response => response.json())
+              .then((data) => { console.log(`Logout from OIDC succeed. Data => ${JSON.stringify(data)}`); })
+              .catch((error) => {
+                reject(error);
+              });
           }
+
+          // Reload session data to update local cache
+          this.#loadSession().then(() => {
+            resolve(this.#session)
+          }).catch((error) => {
+            reject(error);
+          });
         })
         .catch((error) => {
           reject(error);
