@@ -1,6 +1,10 @@
 var { AgostonClient } = require('@agoston-io/client');
-var { gql } = require('@apollo/client/core');
 var assert = require('assert');
+
+/**
+ * This test is based on a backend configuration allowing the
+ * user creation "on the fly" while log in for the first time.
+ */
 
 // Auth with Token
 AgostonClient({
@@ -43,19 +47,24 @@ AgostonClient({
   assert(agostonClient.customGraphQLQueryResult().data.session.user_id === 0);
 
   // Authentication
-  var username = `test-js-client-${Date.now()}`
+  var username1 = `user-${Date.now()}`
+  var username2 = `user-${Date.now() + 1}`
+  var username3 = `user-${Date.now() + 2}`
   await agostonClient.loginOrSignUpFromProvider({ strategyName: "google-oauth20", options: { redirectSuccess: '/profile', redirectError: '/login' } });
   await agostonClient.loginOrSignUpFromProvider({ strategyName: "google-oauth20" });
 
-  // loginOrSignUpWithUserPassword with weak password
+  // loginOrSignUpWithUserPassword with weak password must fail
   await agostonClient.loginOrSignUpWithUserPassword({
-    username: username,
-    password: "password",
-    options: { redirectSuccess: '/' }
+    username: username1,
+    password: "password2024",
+    freeValue: {
+      dateOfBirth: "1986.01.12"
+    },
+    signUpOnly: false,
   }).then(session => {
     console.log(`auth_success: ${JSON.stringify(session)}`)
   }).catch(error => {
-    console.log(`auth_error: ${error}`)
+    console.log(`auth_error: ${JSON.stringify(error)}`)
   });
   assert(typeof agostonClient.isAuthenticated() === "boolean");
   assert(!agostonClient.isAuthenticated());
@@ -64,20 +73,20 @@ AgostonClient({
   assert(typeof agostonClient.userId() === "number");
   assert(agostonClient.userId() === 0);
 
-  // loginOrSignUpWithUserPassword with allowed password
+  // loginOrSignUpWithUserPassword with allowed password must succeed
   await agostonClient.loginOrSignUpWithUserPassword({
-    username: username,
-    password: "password7-F4-",
+    username: username1,
+    password: "easypassword",
     options: {
-      free_value: {
+      freeValue: {
         dateOfBirth: "1986.01.12"
       },
-      redirectSuccess: '/'
+      signUpOnly: false,
     }
   }).then(session => {
     console.log(`auth_success: ${JSON.stringify(session)}`)
   }).catch(error => {
-    console.log(`auth_error: ${error}`)
+    console.log(`auth_error: ${JSON.stringify(error)}`)
   });
   assert(typeof agostonClient.isAuthenticated() === "boolean");
   assert(agostonClient.isAuthenticated());
@@ -88,7 +97,7 @@ AgostonClient({
   assert(typeof agostonClient.userAuthProvider() === "string");
   assert(agostonClient.userAuthProvider() === "user-pwd");
   assert(typeof agostonClient.userAuthSubject() === "string");
-  assert(agostonClient.userAuthSubject() === username);
+  assert(agostonClient.userAuthSubject() === username1);
   assert(typeof agostonClient.userAuthData() === "object");
   assert(agostonClient.userAuthData()["dateOfBirth"] === "1986.01.12");
   assert(typeof agostonClient.userRole() === "string");
@@ -97,14 +106,133 @@ AgostonClient({
   assert(typeof agostonClient.apolloClient() === "object");
   assert(typeof agostonClient.apolloClient() === "object");
 
+  /**
+   * loginOrSignUpWithUserPassword when already logged in with
+   * allowed password must work.
+   */
+  await agostonClient.loginOrSignUpWithUserPassword({
+    username: username2,
+    password: "easypassword",
+    options: {
+      freeValue: {
+        dateOfBirth: "2014.01.12"
+      },
+      signUpOnly: false,
+    }
+  }).then(session => {
+    console.log(`auth_success: ${JSON.stringify(session)}`)
+  }).catch(error => {
+    console.log(`auth_error: ${JSON.stringify(error)}`)
+  });
+  assert(typeof agostonClient.isAuthenticated() === "boolean");
+  assert(agostonClient.isAuthenticated());
+  console.log(`agostonClient.session() => ${JSON.stringify(agostonClient.session())}`);
+  assert(typeof agostonClient.session() === "object");
+  console.log(`agostonClient.userId() => ${JSON.stringify(agostonClient.userId())}`);
+  assert(typeof agostonClient.userId() === "number");
+  assert(typeof agostonClient.userAuthProvider() === "string");
+  assert(agostonClient.userAuthProvider() === "user-pwd");
+  assert(typeof agostonClient.userAuthSubject() === "string");
+  assert(agostonClient.userAuthSubject() === username2);
+  assert(typeof agostonClient.userAuthData() === "object");
+  assert(agostonClient.userAuthData()["dateOfBirth"] === "2014.01.12");
+  assert(typeof agostonClient.userRole() === "string");
+  assert(agostonClient.userRole() === "authenticated");
+  assert(typeof agostonClient.sessionId() === "string");
+  assert(typeof agostonClient.apolloClient() === "object");
+  assert(typeof agostonClient.apolloClient() === "object");
+
+  /**
+   * Sign up only with allowed password but existing user
+   * should not be possible and return an explicit message
+   * to the user.
+   */
+  await agostonClient.loginOrSignUpWithUserPassword({
+    username: username1,
+    password: "easypassword",
+    options: {
+      freeValue: {
+        dateOfBirth: "1986.01.12",
+      },
+      signUpOnly: true,
+    }
+  }).then(session => {
+    console.log(`signup_success: ${JSON.stringify(session)}`)
+  }).catch(error => {
+    assert(error.message === "user-already-exists");
+    console.log(`signup_error: ${JSON.stringify(error)}`)
+  });
+  assert(typeof agostonClient.isAuthenticated() === "boolean");
+  assert(!agostonClient.isAuthenticated());
+  assert(typeof agostonClient.userRole() === "string");
+  assert(agostonClient.userRole() === "anonymous");
+  assert(typeof agostonClient.userId() === "number");
+  assert(agostonClient.userId() === 0);
+
+  /**
+   * Sign up only with allowed password and a new user
+   * should be possible and return.
+   */
+  await agostonClient.loginOrSignUpWithUserPassword({
+    username: username3,
+    password: "easypassword",
+    options: {
+      freeValue: {
+        dateOfBirth: "2023.01.12",
+      },
+      signUpOnly: true,
+    }
+  }).then(session => {
+    console.log(`signup_success: ${JSON.stringify(session)}`)
+  }).catch(error => {
+    console.log(`signup_error: ${JSON.stringify(error)}`)
+  });
+  assert(typeof agostonClient.isAuthenticated() === "boolean");
+  assert(!agostonClient.isAuthenticated());
+  assert(typeof agostonClient.userRole() === "string");
+  assert(agostonClient.userRole() === "anonymous");
+  assert(typeof agostonClient.userId() === "number");
+  assert(agostonClient.userId() === 0);
+
+  /**
+   * Login with user 2 create from previous signup
+   * should work.
+   */
+  await agostonClient.loginOrSignUpWithUserPassword({
+    username: username3,
+    password: "easypassword",
+  }).then(session => {
+    console.log(`login_success: ${JSON.stringify(session)}`)
+  }).catch(error => {
+    console.log(`login_error: ${JSON.stringify(error)}`)
+  });
+  assert(typeof agostonClient.isAuthenticated() === "boolean");
+  assert(agostonClient.isAuthenticated());
+  console.log(`agostonClient.session() => ${JSON.stringify(agostonClient.session())}`);
+  assert(typeof agostonClient.session() === "object");
+  console.log(`agostonClient.userId() => ${JSON.stringify(agostonClient.userId())}`);
+  assert(typeof agostonClient.userId() === "number");
+  assert(typeof agostonClient.userAuthProvider() === "string");
+  assert(agostonClient.userAuthProvider() === "user-pwd");
+  assert(typeof agostonClient.userAuthSubject() === "string");
+  assert(agostonClient.userAuthSubject() === username3);
+  assert(typeof agostonClient.userAuthData() === "object");
+  assert(agostonClient.userAuthData()["dateOfBirth"] === "2023.01.12");
+  assert(typeof agostonClient.userRole() === "string");
+  assert(agostonClient.userRole() === "authenticated");
+  assert(typeof agostonClient.sessionId() === "string");
+  assert(typeof agostonClient.apolloClient() === "object");
+  assert(typeof agostonClient.apolloClient() === "object");
+
   // logout
   await agostonClient.logout({
-    options: { redirectLogout: 'https://f753b978-a7db-4375-8adf-0649aeff2673.2c059b20-a200-45aa-8492-0e2891e14832.backend.agoston.io/auth/session' }
+    options: { redirectLogout: 'https://example.com' }
   }).then(session => {
     console.log(`logout_success: ${JSON.stringify(session)}`)
   }).catch(error => {
-    console.log(`logout_error: ${error}`)
+    console.log(`logout_error: ${JSON.stringify(error)}`)
   });
+
   assert(typeof agostonClient.isAuthenticated() === "boolean");
   assert(!agostonClient.isAuthenticated());
   assert(agostonClient.userRole() === "anonymous");

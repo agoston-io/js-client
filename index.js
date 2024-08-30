@@ -25,8 +25,6 @@ class Client {
   #apolloClient = null;
   #apolloProvider = null;
   #cookie = null;
-  #customGraphQLQueryEncoded = null;
-  #customGraphQLQueryVariablesEncoded = null;
   #configurationUrlParam = `?`;
 
   async init(params = {}) {
@@ -138,13 +136,23 @@ class Client {
   session() { return this.#session || "{}" }
   customGraphQLQueryResult() { return this.#configuration.customGraphQLQueryResult }
 
-  // Auth with user/password
+  /**
+   * Login or signup + login a user (if allowed by the backend).
+   * @param {string} params.username The username (the format must comply with the backend settings).
+   * @param {string} params.password The password (the format must comply with the backend settings).
+   * @param {boolean} params.options.signUpOnly To only sign up a user (using the backend signup endpoint).
+   * @param {object} params.options.freeValue A JSON payload to add to the user data.
+   * @returns a promise
+   */
   async loginOrSignUpWithUserPassword(params = {}) {
     if (params.username === undefined || params.password === undefined) {
       throw new Error(`Missing username or password.`);
     }
     var post_option = `?redirect=false`;
     var post_link = `${this.#configuration.authentication.without_link["user-pwd"].post_auth_endpoint}${post_option}`;
+    if (params.options?.signUpOnly || false) {
+      var post_link = `${this.#configuration.authentication.without_link["user-pwd"].post_signup_endpoint}${post_option}`;
+    }
 
     return new Promise((resolve, reject) => {
       fetch(post_link, {
@@ -154,23 +162,19 @@ class Client {
         body: JSON.stringify({
           username: params.username || 'null',
           password: params.password || 'null',
-          free_value: params.options?.free_value || {}
+          free_value: params.options?.freeValue || {}
         })
       })
         .then((response) => {
           response.json().then((responseJson) => {
-            if (response.ok) {
-              if (this.#mode === this.#CMD) {
-                this.#cookie = response.headers.get('set-cookie');
-              }
-              this.#loadSession().then(() => {
-                resolve(this.#session)
-              }).catch((error) => {
-                reject(error);
-              });;
-            } else {
-              reject(responseJson.message)
+            if (this.#mode === this.#CMD) {
+              this.#cookie = response.headers.get('set-cookie');
             }
+            this.#loadSession().then(() => {
+              resolve({ ...this.#session, ...responseJson })
+            }).catch((error) => {
+              reject(error);
+            });
           })
         })
         .catch((error) => {
@@ -180,7 +184,10 @@ class Client {
     });
   }
 
-  // Auth with link
+  /**
+   * Initial the login process with the third pary authentication provider.
+   * @returns nothing
+   */
   async loginOrSignUpFromProvider(params = {}) {
     if (params.strategyName === undefined) { params.strategyName = 'default-auth0-oidc'; }
     if (!(params.strategyName in this.#configuration.authentication.with_link)) {
@@ -196,8 +203,14 @@ class Client {
     }
   }
 
-  // Logout
-  async logout(params = {}) {
+  /**
+   * logout() log the user out by destroying its session in the backend
+   * and the third party OIDC provider if any (for OIDC provider,
+   * the logout url and the ID token is return from the backend
+   * in the response: res.oidc)
+   * @returns a promise
+   */
+  async logout() {
     var logout_link = `${this.#configuration.authentication.logout_link}`;
     const options = {
       method: "POST",
@@ -208,17 +221,31 @@ class Client {
       options.headers["Cookie"] = this.#cookie
     }
     return new Promise((resolve, reject) => {
+
       fetch(logout_link, options)
-        .then((response) => {
-          if (response.ok) {
-            this.#loadSession().then(() => {
-              resolve(this.#session)
-            }).catch((error) => {
-              reject(error);
-            });
-          } else {
-            reject(JSON.stringify(response))
+        .then(response => response.json())
+        .then((data) => {
+
+          // If OIDC session: log out from OIDC
+          if (data.oidc?.has_oidc_session || false) {
+            fetch(`${data.oidc.end_session_endpoint}?id_token_hint=${encodeURIComponent(data.oidc.session_id_token)}`, {
+              method: "GET",
+              credentials: "include",
+              mode: 'no-cors',
+            })
+              .then(response => response.json())
+              .then((data) => { console.log(`Logout from OIDC succeed. Data => ${JSON.stringify(data)}`); })
+              .catch((error) => {
+                reject(error);
+              });
           }
+
+          // Reload session data to update local cache
+          this.#loadSession().then(() => {
+            resolve(this.#session)
+          }).catch((error) => {
+            reject(error);
+          });
         })
         .catch((error) => {
           reject(error);
@@ -226,7 +253,11 @@ class Client {
     });
   }
 
-  // Apollo client thin
+  /**
+   * Create an Apollo client with websocket (for GraphQL subscriptions).
+   * The Apollo client send the credentials (cookies) or a HTTP Bearer token if any.
+   * @returns an Apollo client with websocket ready to use with the backend.
+   */
   createEmbeddedApolloClient() {
 
     const { ApolloClient, ApolloLink, split, InMemoryCache } = require('@apollo/client/core');
