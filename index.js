@@ -223,30 +223,20 @@ class Client {
     return new Promise((resolve, reject) => {
       fetch(logout_link, options)
         .then(response => response.json())
-        .then((data) => {
+        .then(async (data) => {
           // If OIDC session: log out from OIDC
           if (data.oidc?.has_oidc_session || false) {
-            fetch(`${data.oidc.end_session_endpoint}?id_token_hint=${encodeURIComponent(data.oidc.session_id_token)}`, {
+            await fetch(`${data.oidc.end_session_endpoint}?id_token_hint=${encodeURIComponent(data.oidc.session_id_token)}`, {
               method: "GET",
               credentials: "include",
               mode: 'no-cors',
             })
-              .then(() => {
-                console.log(`Logout from OIDC succeed.`);
-                // Reload session data to update local cache
-                this.#loadSession().then(() => {
-                  resolve(this.#session)
-                }).catch((error) => {
-                  reject(error);
-                });
-              })
-          } else {
-            this.#loadSession().then(() => {
-              resolve(this.#session)
-            }).catch((error) => {
-              reject(error);
-            });
           }
+          this.#loadSession().then(() => {
+            resolve(this.#session)
+          }).catch((error) => {
+            reject(error);
+          });
         })
         .catch((error) => {
           reject(error);
