@@ -224,23 +224,16 @@ class Client {
 
       fetch(logout_link, options)
         .then(response => response.json())
-        .then((data) => {
 
+        .then(async (data) => {
           // If OIDC session: log out from OIDC
           if (data.oidc?.has_oidc_session || false) {
-            fetch(`${data.oidc.end_session_endpoint}?id_token_hint=${encodeURIComponent(data.oidc.session_id_token)}`, {
+            await fetch(`${data.oidc.end_session_endpoint}?id_token_hint=${encodeURIComponent(data.oidc.session_id_token)}`, {
               method: "GET",
               credentials: "include",
               mode: 'no-cors',
             })
-              .then(response => response.json())
-              .then((data) => { console.log(`Logout from OIDC succeed. Data => ${JSON.stringify(data)}`); })
-              .catch((error) => {
-                reject(error);
-              });
           }
-
-          // Reload session data to update local cache
           this.#loadSession().then(() => {
             resolve(this.#session)
           }).catch((error) => {
