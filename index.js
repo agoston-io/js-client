@@ -221,8 +221,10 @@ class Client {
       options.headers["Cookie"] = this.#cookie
     }
     return new Promise((resolve, reject) => {
+
       fetch(logout_link, options)
         .then(response => response.json())
+
         .then(async (data) => {
           // If OIDC session: log out from OIDC
           if (data.oidc?.has_oidc_session || false) {
