@@ -195,7 +195,7 @@ AgostonClient({
   assert(agostonClient.userId() === 0);
 
   /**
-   * Login with user 2 create from previous signup
+   * Login with user 3 create from previous signup
    * should work.
    */
   await agostonClient.loginOrSignUpWithUserPassword({
@@ -223,6 +223,56 @@ AgostonClient({
   assert(typeof agostonClient.sessionId() === "string");
   assert(typeof agostonClient.apolloClient() === "object");
   assert(typeof agostonClient.apolloClient() === "object");
+
+  // Change the user password with wrong current password
+  await agostonClient.changeUserPaswword({
+    username: username3,
+    currentPassword: "wrong",
+    password: "simplepassword",
+  }).then(session => {
+    console.log(`changeUserPaswword_success: ${JSON.stringify(session)}`)
+    assert(false);
+  }).catch(error => {
+    console.log(`changeUserPaswword_error: ${JSON.stringify(error)}`)
+    assert(true);
+  });
+
+  // Change the user password with correct current password
+  await agostonClient.changeUserPaswword({
+    username: username3,
+    currentPassword: "easypassword",
+    password: "simplepassword",
+  }).then(session => {
+    console.log(`changeUserPaswword_success: ${JSON.stringify(session)}`)
+    assert(true);
+  }).catch(error => {
+    console.log(`changeUserPaswword_error: ${JSON.stringify(error)}`)
+    assert(false);
+  });
+
+  // Login with previous password should fail
+  await agostonClient.loginOrSignUpWithUserPassword({
+    username: username3,
+    password: "easypassword",
+  }).then(session => {
+    console.log(`login_success: ${JSON.stringify(session)}`)
+    assert(false);
+  }).catch(error => {
+    console.log(`login_error: ${JSON.stringify(error)}`)
+    assert(true);
+  });
+
+  // Login with new password should work
+  await agostonClient.loginOrSignUpWithUserPassword({
+    username: username3,
+    password: "simplepassword",
+  }).then(session => {
+    console.log(`login_success: ${JSON.stringify(session)}`)
+    assert(true);
+  }).catch(error => {
+    console.log(`login_error: ${JSON.stringify(error)}`)
+    assert(false);
+  });
 
   // logout
   await agostonClient.logout({

@@ -149,6 +149,23 @@ agostonClient
   });
 ```
 
+#### Change the user password
+
+```js
+await agostonClient
+  .changeUserPaswword({
+    username: username3,
+    currentPassword: "easypassword",
+    password: "simplepassword",
+  })
+  .then((session) => {
+    console.log(`changeUserPaswword_success: ${JSON.stringify(session)}`);
+  })
+  .catch((error) => {
+    console.log(`changeUserPaswword_error: ${JSON.stringify(error)}`);
+  });
+```
+
 ### Authenticate with bearer token
 
 ```js
@@ -247,3 +264,10 @@ AgostonClient({ backendUrl: process.env.AGOSTON_BACKEND_URL }).then(
   networkStatus: 7
 }
 ```
+
+## Agoston backend compatibility
+
+| Client version | Minimum backend version | Maximum backend version |
+| -------------- | ----------------------- | ----------------------- |
+| >= 1.4.0       | >= 3.17.0               | none                    |
+| >= 1.3.0       | >= 3.16.0               | < 3.17.0                |

@@ -247,6 +247,37 @@ class Client {
   }
 
   /**
+   * changeUserPaswword() Change the user's password if the previous provided
+   * password is valid.
+   * @param {string} params.username The username.
+   * @param {string} params.currentPassword The current password that must be changed.
+   * @param {string} params.password The new password (the format must comply with the backend settings).
+   * @returns a promise
+   */
+  async changeUserPaswword(params = {}) {
+    var patch_link = `${this.#configuration.authentication.without_link["user-pwd"].patch_auth_endpoint}`;
+    const options = {
+      method: "PATCH",
+      headers: this.#headers,
+      body: JSON.stringify({
+        username: params.username || 'null',
+        currentPassword: params.currentPassword || 'null',
+        password: params.password || 'null',
+      })
+    };
+    return new Promise((resolve, reject) => {
+      fetch(patch_link, options)
+        .then(response => response.json())
+        .then(async (data) => {
+          resolve(data)
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    });
+  }
+
+  /**
    * Create an Apollo client with websocket (for GraphQL subscriptions).
    * The Apollo client send the credentials (cookies) or a HTTP Bearer token if any.
    * @returns an Apollo client with websocket ready to use with the backend.
